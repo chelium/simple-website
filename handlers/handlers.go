@@ -17,3 +17,12 @@ func GetTodoHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, getTodo)
 }
+
+func GetTodoHandler(c *gin.Context) {
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, getTodo)
+}

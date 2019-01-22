@@ -35,6 +35,7 @@ func main() {
 	authorized := r.Group("/")
 	authorized.Use(authRequired())
 	r.GET("/todo", handlers.GetTodoHandler)
+	r.POST("/todo", handlers.AddTodoHandler)
 
 	err := r.Run(":3000")
 	if err != nil {

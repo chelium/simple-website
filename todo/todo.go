@@ -12,7 +12,7 @@ type Todo struct {
 	Complete    bool   `json:"complete"`
 }
 
-// Gets a todo
+// Get a todo
 func Get() (Todo, error) {
 	t := new(Todo)
 	t.Title = "Testing"
@@ -21,8 +21,20 @@ func Get() (Todo, error) {
 	return *t, nil
 }
 
-func newTodo(title, description string) Todo {
-	return Todo{
+// Add a todo
+func Add(title, description string) string {
+	t := NewTodo(title, description)
+	return t.ID
+}
+
+// Delete a todo
+func Delete(id string) error {
+	return nil
+}
+
+// NewTodo creates a new todo.
+func NewTodo(title, description string) *Todo {
+	return &Todo{
 		ID:          xid.New().String(),
 		Title:       title,
 		Description: description,
