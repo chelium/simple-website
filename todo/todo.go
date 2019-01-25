@@ -13,18 +13,23 @@ type Todo struct {
 }
 
 // Get a todo
-func Get() (Todo, error) {
+func Get() (*Todo, error) {
 	t := new(Todo)
 	t.Title = "Testing"
 	t.Description = "Test description"
 	t.Complete = false
-	return *t, nil
+	return t, nil
 }
 
 // Add a todo
 func Add(title, description string) string {
 	t := NewTodo(title, description)
 	return t.ID
+}
+
+// Update a todo
+func Update(id string, todo *Todo) error {
+	return nil
 }
 
 // Delete a todo

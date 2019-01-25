@@ -18,7 +18,9 @@ func GetTodoHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, getTodo)
 }
 
-func GetTodoHandler(c *gin.Context) {
+// PostTodoHandler will create a user using payload
+func PostTodoHandler(c *gin.Context) {
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
