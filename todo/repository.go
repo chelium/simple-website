@@ -2,7 +2,7 @@ package todo
 
 // TodoRepository provides access to todo store.
 type TodoRepository interface {
-	Create(todo *Todo)
+	Create(todo *Todo) (string, error)
 	Read(id string) (*Todo, error)
 	ReadAll() ([]*Todo, error)
 	Update(id string, todo *Todo) error

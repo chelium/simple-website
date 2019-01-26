@@ -12,14 +12,14 @@ type todoRepository struct {
 	session *mgo.Session
 }
 
-func (r *todoRepository) Create(todo *todo.Todo) error {
+func (r *todoRepository) Create(todo *todo.Todo) (string, error) {
 	sess := r.session.Copy()
 	defer sess.Close()
 
 	c := sess.DB(r.db).C("todo")
 
 	_, err := c.Upsert(bson.M{"id": todo.ID}, bson.M{"$set": todo})
-	return err
+	return todo.ID, err
 }
 
 func (r *todoRepository) Read(id string) (*todo.Todo, error) {
@@ -52,13 +52,13 @@ func (r *todoRepository) ReadAll() ([]*todo.Todo, error) {
 	return result, nil
 }
 
-func (r *todoRepository) Update(id string, todo *todo.Todo) error {
+func (r *todoRepository) Update(id string, t *todo.Todo) error {
 	sess := r.session.Copy()
 	defer sess.Close()
 
 	c := sess.DB(r.db).C("todo")
 
-	if err := c.Update(bson.M{"id": id}, todo); err != nil {
+	if err := c.Update(bson.M{"id": id}, t); err != nil {
 		if err == mgo.ErrNotFound {
 			return todo.ErrNotFound
 		}
@@ -84,6 +84,7 @@ func (r *todoRepository) Delete(id string) error {
 	return nil
 }
 
+// NewTodoRepository returns a new instance of a MongoDB todo repository.
 func NewTodoRepository(db string, session *mgo.Session) (todo.TodoRepository, error) {
 	r := &todoRepository{
 		db:      db,
