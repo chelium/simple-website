@@ -18,7 +18,20 @@ type service struct {
 }
 
 func (s *service) CreateUserTodo(userID string, todo Todo) (string, error) {
-	return s.todos.Create(userID, &todo)
+	user, err := s.users.ReadByID(userID)
+	if err != nil {
+		return "", err
+	}
+	todoID, err := s.todos.Create(userID, &todo)
+	if err != nil {
+		return "", err
+	}
+	user.Todos = append(user.Todos, todoID)
+	err = s.users.Update(userID, user)
+	if err != nil {
+		return "", err
+	}
+	return todoID, nil
 }
 
 func (s *service) GetUserTodo(userID, todoID string) (Todo, error) {
