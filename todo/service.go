@@ -47,6 +47,22 @@ func (s *service) UpdateUserTodo(userID, todoID string, todo Todo) error {
 }
 
 func (s *service) DeleteUserTodo(userID, todoID string) error {
+	user, err := s.users.ReadByID(userID)
+	if err != nil {
+		return err
+	}
+	removeIdx := 0
+	for ; removeIdx < len(user.Todos); removeIdx++ {
+		if user.Todos[removeIdx] == todoID {
+			break
+		}
+	}
+	if removeIdx < len(user.Todos) {
+		user.Todos = append(user.Todos[:removeIdx], user.Todos[removeIdx+1:]...)
+	}
+	if err := s.users.Update(userID, user); err != nil {
+		return err
+	}
 	return s.todos.Delete(userID, todoID)
 }
 
