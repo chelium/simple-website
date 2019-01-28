@@ -2,28 +2,30 @@ package server
 
 import (
 	"github.com/chelium/simple-website/todo"
+	ts "github.com/chelium/simple-website/todo/service"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"net/http"
 )
 
 type todoHandler struct {
-	s todoService
+	s ts.Service
 }
 
 func (h *todoHandler) AddRoutes(router *gin.Engine) {
 	todos := router.Group("/todos")
 	{
-		todos.GET("/", getTodosEndpoint)
-		todos.GET("/:id", getTodoEndpoint)
-		todos.PUT("/:id", putTodoEndpoint)
-		todos.POST("/", postTodoEndpoint)
-		todos.DELETE("/:id", deleteTodoEndpoint)
+		todos.GET("/", h.getTodosEndpoint)
+		todos.GET("/:id", h.getTodoEndpoint)
+		todos.PUT("/:id", h.putTodoEndpoint)
+		todos.POST("/", h.postTodoEndpoint)
+		todos.DELETE("/:id", h.deleteTodoEndpoint)
 	}
 }
 
-func getTodosEndpoint(c *gin.Context) {
+func (h *todoHandler) getTodosEndpoint(c *gin.Context) {
 	userID := c.MustGet(gin.AuthUserKey).(string)
-	getTodos, err := s.GetUserTodos(userID)
+	getTodos, err := h.s.GetUserTodos(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
@@ -32,10 +34,10 @@ func getTodosEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, getTodos)
 }
 
-func getTodoEndpoint(c *gin.Context) {
+func (h *todoHandler) getTodoEndpoint(c *gin.Context) {
 	todoID := c.Param("id")
 	userID := c.MustGet(gin.AuthUserKey).(string)
-	getTodo, err := s.GetUserTodo(userID, todoID)
+	getTodo, err := h.s.GetUserTodo(userID, todoID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
@@ -44,7 +46,7 @@ func getTodoEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, getTodo)
 }
 
-func postTodoEndpoint(c *gin.Context) {
+func (h *todoHandler) postTodoEndpoint(c *gin.Context) {
 	userID := c.MustGet(gin.AuthUserKey).(string)
 	newTodo := todo.Todo{}
 	if err := c.ShouldBindBodyWith(newTodo, binding.JSON); err != nil {
@@ -52,7 +54,7 @@ func postTodoEndpoint(c *gin.Context) {
 		return
 	}
 	newT := todo.NewTodo(newTodo.Title, newTodo.Description)
-	newTID, err := s.CreateUserTodo(userID, newT)
+	newTID, err := h.s.CreateUserTodo(userID, *newT)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
@@ -61,7 +63,7 @@ func postTodoEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, newTID)
 }
 
-func putTodoEndpoint(c *gin.Context) {
+func (h *todoHandler) putTodoEndpoint(c *gin.Context) {
 	todoID := c.Param("id")
 	userID := c.MustGet(gin.AuthUserKey).(string)
 	t := todo.Todo{}
@@ -69,23 +71,23 @@ func putTodoEndpoint(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err)
 		return
 	}
-	err := s.UpdateUserTodo(userID, todoID, t)
+	err := h.s.UpdateUserTodo(userID, todoID, t)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, newTID)
+	c.JSON(http.StatusOK, nil)
 }
 
-func deleteTodoEndpoint(c *gin.Context) {
+func (h *todoHandler) deleteTodoEndpoint(c *gin.Context) {
 	todoID := c.Param("id")
 	userID := c.MustGet(gin.AuthUserKey).(string)
-	err := s.DeleteUserTodo(userID, todoID)
+	err := h.s.DeleteUserTodo(userID, todoID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 
-	c.JSON(http.StatusOK)
+	c.JSON(http.StatusOK, nil)
 }

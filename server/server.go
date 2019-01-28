@@ -2,20 +2,20 @@ package server
 
 import (
 	"github.com/gin-gonic/gin"
-	jose "gopkg.in/square/go-jose.v2"
+	// jose "gopkg.in/square/go-jose.v2"
 
-	"github.com/chelium/simple-website/todo"
+	todo "github.com/chelium/simple-website/todo/service"
 )
 
 // Server holds the dependencies for an HTTP server.
 type Server struct {
-	Todo todo.todoService
+	Todo todo.Service
 
 	router *gin.Engine
 }
 
 // New returns a new HTTP server.
-func New(ts todo.todoService) *Server {
+func New(ts todo.Service) *Server {
 	s := &Server{
 		Todo: ts,
 	}
