@@ -4,14 +4,22 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
-	"path/filepath"
+
+	"github.com/chelium/simple-website/mongo"
+	"github.com/chelium/simple-website/server"
+	todo "github.com/chelium/simple-website/todo/service"
+	user "github.com/chelium/simple-website/user/service"
 
 	"github.com/auth0-community/go-auth0"
 	"github.com/gin-gonic/gin"
+	"gopkg.in/mgo.v2"
 	jose "gopkg.in/square/go-jose.v2"
+)
 
-	"github.com/chelium/simple-website/handlers"
+const (
+	defaultPort       = ":8080"
+	defaultMongoDBURL = "127.0.0.1:27017"
+	defaultDBName     = "simplewebsite"
 )
 
 var (
@@ -20,27 +28,37 @@ var (
 )
 
 func main() {
-	setAuth0Variables()
-	r := gin.Default()
-	r.NoRoute(func(c *gin.Context) {
-		dir, file := path.Split(c.Request.RequestURI)
-		ext := filepath.Ext(file)
-		if file == "" || ext == "" {
-			c.File("./web/dist/web/index.html")
-		} else {
-			c.File("./web/dist/web/" + path.Join(dir, file))
-		}
-	})
+	var (
+		addr   = envString("PORT", defaultPort)
+		dburl  = envString("MONGODB_URL", defaultMongoDBURL)
+		dbname = envString("DB_NAME", defaultDBName)
+	)
 
-	authorized := r.Group("/")
-	authorized.Use(authRequired())
-	r.GET("/todo", handlers.GetTodoHandler)
-	r.POST("/todo", handlers.AddTodoHandler)
-
-	err := r.Run(":3000")
+	session, err := mgo.Dial(dburl)
 	if err != nil {
 		panic(err)
 	}
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+	var (
+		todos, _ = mongo.NewTodoRepository(dbname, session)
+		users, _ = mongo.NewUserRepository(dbname, session)
+	)
+
+	var us user.Service
+	us = user.NewService(todos, users)
+
+	var ts todo.Service
+	ts = todo.NewService(todos, users)
+
+	setAuth0Variables()
+	//	r := gin.Default()
+
+	// authorized := r.Group("/")
+	// authorized.Use(authRequired())
+	srv := server.New(ts, us)
+
+	srv.Router.Run(addr)
 }
 
 func setAuth0Variables() {
@@ -69,4 +87,13 @@ func authRequired() gin.HandlerFunc {
 func terminateWithError(statusCode int, message string, c *gin.Context) {
 	c.JSON(statusCode, gin.H{"error": message})
 	c.Abort()
+}
+
+func envString(key, fallback string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		return fallback
+	}
+
+	return val
 }

@@ -13,7 +13,7 @@ type Server struct {
 	Todo todo.Service
 	User user.Service
 
-	router *gin.Engine
+	Router *gin.Engine
 }
 
 // New returns a new HTTP server.
@@ -35,6 +35,6 @@ func New(ts todo.Service, us user.Service) *Server {
 	}
 	userHandler.AddRoutes(r)
 
-	s.router = r
+	s.Router = r
 	return s
 }
