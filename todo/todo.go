@@ -10,6 +10,9 @@ type Todo struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Complete    bool   `json:"complete"`
+	Owner       string `json:"owner"`
+	CreatedBy   string `json:"createdBy"`
+	AssignedTo  string `json:"assignedTo"`
 }
 
 // NewTodo creates a new todo.
